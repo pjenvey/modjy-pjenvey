@@ -1,0 +1,394 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Installing modjy</title>
+<link href="modjy.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<a name="top"></a>
+<table width="100%" border="0">
+<tr>
+<td width="210"><img align="left" src="logo_sm.gif"></td><td>
+<table width="100%" align="center">
+<tr>
+<td class="nb"><a href="index.html" class="nav">index</a></td><td class="nb"><a href="download.html" class="nav">download</a></td><td class="nb"><a href="install.html" class="nav">install</a></td><td class="nb"><a href="params.html" class="nav">config</a></td><td class="nb"><a href="locating.html" class="nav">apps</a></td><td class="nb"><a href="wsgi.html" class="nav">compliance</a></td><td class="nb"><a href="related.html" class="nav">related</a></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<h3 class="pagetitle">
+<b>Installing modjy</b>
+</h3>
+<ol>
+<li>
+<a href="#choosing_container">Choosing a J2EE container</a>
+</li>
+<li>
+<a href="#install_steps">The steps required to install and configure modjy</a>
+</li>
+<li>
+<a href="#install_servlet">Installing the modjy servlet</a>
+</li>
+<li>
+<a href="#jython_jar">Placing the jython.jar file</a>
+</li>
+<li>
+<a href="#configuring_modjy">Configuring modjy</a>
+</li>
+<li>
+<a href="#testing_modjy">Testing that modjy is running.</a>
+</li>
+<li>
+<a href="#context_root">The context root of the modjy servlet.</a>
+</li>
+<li>
+<a href="#serving_all">Serving all requests to a container with modjy.</a>
+</li>
+</ol>
+<a name="choosing_container"></a>
+<h4 class="secthead">1: Choosing a J2EE container</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+				In order to run modjy, you will need to have a J2EE-compliant servlet container. There are dozens of such competing containers on the market, both commercial and non-commercial, both open-source and closed-source. You can find a current and comprehensive list of them here: <a href="http://mindprod.com/jgloss/servletwomb.html">Java Glossary : servlet womb</a>.
+			</p>
+			
+<p>
+				If you are already using a particular servlet container, then you've probably chosen it for good reasons, and are unlikely to change it. Since modjy was written to the J2EE standard, you should be able to run modjy without modification, and the below documentation should be sufficient to help you configure it. But you will need to know the in-and-outs of how to configure your container for modjy: I'm not going to include installation instructions for every container here.
+			</p>
+			
+<p>
+				If you are picking a servlet container for the sole purpose of running modjy, then I recommend that you use <a href="http://tomcat.apache.org/">Tomcat 6</a>, for the following reasons
+			</p>
+			
+<ol>
+				
+<li>Because all of the modjy documentation examples relate to it</li>
+				
+<li>Because it is one of the simplest containers to get up and running</li>
+				
+<li>Because it is one of the most stable, most configurable, well supported and well documented containers there is.</li>
+			
+</ol>
+			
+<p>
+				So if you don't yet have a running J2EE servlet container, I recommend that you <a href="http://tomcat.apache.org/">download the latest version of Tomcat 6</a>, install it and get it running now, before proceeding.
+			</p>
+		
+</div>
+<a name="install_steps"></a>
+<h4 class="secthead">2: The steps required to install and configure modjy</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+				From here, I will assume that you already have a J2EE container up and running. You should be satisfied that your container is fully operational, i.e. by using some container-specific test mechanism, before attempting to install modjy.
+			</p>
+			
+<p>
+				You should also have <a href="http://www.jython.org/Project/download.html">jython 2.2</a> installed and operational on your target system.
+			</p>
+			
+<p>
+				The following are the steps that you will need to follow, in order: each is explained in detail below.
+			</p>
+			
+<ol>
+				
+<li>
+<a href="#install_servlet">Install the modjy java servlet</a>, including it's <span class="const">web.xml</span> configuration file and its <span class="const">modjy.jar</span> file.</li>
+				
+<li>
+<a href="#jython_jar">Place the <span class="const">jython.jar</span> file in a suitable location</a>.</li>
+				
+<li>
+<a href="#configuring_modjy">Set the value of the <span class="const">python.home</span> property</a>.</li>
+				
+<li>
+<a href="#testing_modjy">Test that modjy is running</a>.</li>
+				
+<li>
+<a href="#serving_all">Optionally configure modjy to service all requests to the container</a> (not just requests for a subset of the URI space).</li>
+			
+</ol>
+		
+</div>
+<a name="install_servlet"></a>
+<h4 class="secthead">3: Installing the modjy servlet</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>It should be easy to install modjy as a web application. Simply take a copy of the <span class="const">modjy_webapp</span> directory in the modjy distribution, and drop it in the location where your container expects to find web applications.</p>
+			
+<p>The default installation of Apache Tomcat 6 has a subdirectory called <span class="const">webapps</span>. If you're running Tomcat 6, simply drop the <span class="const">modjy_webapp</span> directory in there, (maybe) restart your container, and you should be up-and-running.</p>
+			
+<p>If you're using a different J2EE container, or a non-default installation of Tomcat, you'll need to read your container documentation to find out where web applications should live.</p>
+			
+<p>The <span class="const">modjy_webapp</span> directory contains the following files and directories</p>
+			
+<table cellpadding="3" class="datatab">
+				
+<tr class="tabh">
+					
+<th class="tabhead">Path</th>
+					<th class="tabhead">Description</th>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="left">WEB-INF</td>
+					<td>This standard J2EE directory contains the support resources required for a web application.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="left">WEB-INF/web.xml</td>
+					<td>This file contains configuration for this instance of the modjy servlet. The J2EE servlet &lt;init-param&gt; parameters are used to control the operation of modjy. Setting configuration parameters is described below. The configuration parameters which can be set are described in a separate document: <a href="params.html">Modjy parameters</a>.</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="left">WEB-INF/lib</td>
+					<td>This is the standard J2EE directory where servlet support jars, etc, should be placed. In the simple case, this is where the jython.jar file should go. See below under <a href="#jython_jar">Placing the jython.jar file</a> for more details.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="left">WEB-INF/lib-python</td>
+					<td>This directory is treated specially by modjy. Firstly, lib-python is added to sys.path, which means that any python libraries you wish to use can be dropped in here, and they will automatically become available to your code. Secondly, the directory is searched for <a href="http://docs.python.org/inst/search-path.html#search-path">python .pth files</a>. These files are simple text files, each line of which is added directly to sys.path. So if you want to use .jar files, .zip files or .egg files containing python code, you should create a text file, whose name ends with <b>.pth</b>, listing each of those files, one per line, and place the file in the lib-python directory. All files in the lib-python directory whose names end with <b>.pth</b> are scanned.</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="left">WEB-INF/lib/modjy.jar</td>
+					<td>This is the jar file which contains the single java class file for modjy, as well as several jython source (*.py) files which implement modjy. These jython files are imported directly from the jar file by modjy, so you should not need to extract them into the filesystem.</td>
+				
+</tr>
+			
+</table>
+		
+</div>
+<a name="jython_jar"></a>
+<h4 class="secthead">4: Placing the jython.jar file</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+				When the modjy servlet is running, it requires access to the <span class="const">jython.jar</span> file, so you must place this file in the servlet container hierarchy so that it is available when the modjy servlet class is being loaded.
+			</p>
+			
+<p>Standard J2EE classloading behaviour when looking for support resources is to look first inside the <span class="const">WEB-INF/lib</span> directory for a web application. So if you're just running a single instance of the modjy servlet, you can place the jython.jar file in there, and read no further in this section.
+			</p>
+			
+<p>
+				If you're running more than one instance of the servlet, you have a choice of what to do.
+			</p>
+			
+<ol>
+				
+<li>Place multiple copies of jython.jar, one in the <span class="const">WEB-INF/lib</span> directory of each instance.</li>
+				
+<li>Place a single copy of jython.jar in a place where all instances of the modjy servlet can find it. Picking the right place requires knowing how the classloader hierarchy of your container works, so you may need to do some reading. On the standard Tomcat 6 installation, there is a directory called <span class="const">lib</span>, which is shared between all web applications, so you could put it there. More information available in the <a href="http://tomcat.apache.org/tomcat-6.0-doc/class-loader-howto.html">Tomcat 6 documentation on classloading</a>
+</li>
+			
+</ol>
+			
+<p>
+				If you neglect to make jython.jar available to the modjy servlet, or put it in the wrong place, then you will get messages like this in your error log: <b>java.lang.NoClassDefFoundError: org/python/core/PyException</b>.
+			</p>
+		
+</div>
+<a name="configuring_modjy"></a>
+<h4 class="secthead">5: Configuring modjy</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+				Configuring modjy is done inside the <span class="const">&lt;servlet&gt;</span> elements in web.xml files. You have to define a name for the servlet, and the name of the class that implements it. So the beginning of your servlet declaration for modjy will look something like this
+			</p>
+			
+<pre class="fragment">
+&lt;servlet&gt;
+    &lt;servlet-name&gt;modjy&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;com.xhaus.modjy.ModjyJServlet&lt;/servlet-class&gt;
+    &lt;!-- Parameters omitted --&gt;
+    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+&lt;/servlet&gt;
+			</pre>
+			
+<p>
+				After this is a series of <span class="const">initialization parameters</span>, given as name/value pairs. These parameters control the operation of modjy, for example logging, caching, threading, etc, behaviour. All of those parameters, what they mean, and their permitted and default values, are described in a separate document: the <a href="params.html">modjy configuration reference</a>.
+			</p>
+			
+<p>
+			There is only a single parameter that is always required: the <span class="const">python.home</span> property, which gives the home directory of the local jython installation. Without knowing this value, modjy cannot operate, so this is the first thing you should check if things aren't working.
+			</p>
+			
+<p>
+				Specifying python.home permits jython to locate its registry file, its cache of pre-compiled packages, etc, etc. For more information on the effects of setting python.home, see the <a href="http://www.jython.org/docs/registry.html">The Jython Registry</a> documentation.
+			</p>
+			
+<p>There is one final web.xml configuration value which needs to be specified: the <span class="const">servlet-mapping</span>. This maps an URL pattern to the servlet declared above. Inside the web.xml file, you will need a fragment like this</p>
+			
+<pre class="fragment">
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;modjy&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+			</pre>
+		
+</div>
+<a name="testing_modjy"></a>
+<h4 class="secthead">6: Testing that modjy is running.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+				First off, be sure that your container is running. Assuming that you're using the out-of-the-box configuration, and that you're running your container on port 8080 on localhost, then resolving the following URL should render proof that modjy is indeed running.
+			</p>
+			
+<pre class="fragment">
+http://localhost:8080/modjy_webapp/
+			</pre>
+			
+<p>
+				The returned page should show some version details for jython, and the JVM version in which it is running. It will also display a table showing the contents of the WSGI environment, as seen by all WSGI applications running under modjy.
+			</p>
+		
+</div>
+<a name="context_root"></a>
+<h4 class="secthead">7: The context root of the modjy servlet.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+				Any instance of the modjy servlet lives in a <span class="const">servlet context</span>. This context has a related file system directory, where resources supporting the servlet are located. <b>This directory is the default directory where modjy starts looking for application files to load</b>.
+			</p>
+			
+<p>
+				If you are using the out-of-the-box configuration, this directory will be the <span class="const">modjy_webapp</span> directory, so you should place your WSGI application files in there. 
+			</p>
+			
+<p>
+				If you are mapping all URIs through modjy, as described below, then the context root directory will be different. Tomcat 6 creates a special <span class="const">ROOT</span> directory under its <span class="const">webapps</span> directory: the behaviour of your container may differ. <b>Whichever directory this is for your container is the root directory in which modjy will begin the search for application source files</b>.
+			</p>
+		
+</div>
+<a name="serving_all"></a>
+<h4 class="secthead">8: Serving all requests to a container with modjy.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+<span class="subhead">A - Changing the uri space served by modjy</span>
+</p>
+			
+<p>
+				If you successfully installed the modjy servlet according to the instructions above, using the suggested name <span class="const">modjy_webapp</span>, then you will find that modjy will be used by the container to service all requests which look like this: <span class="const">/modjy_webapp/*</span>. However, you probably don't want to use URIs like that.
+			</p>
+			
+<p>
+				If you want modjy to serve requests for a different uri subset, simply rename the web application directory to something else: e.g. <span class="const">my_app_uri</span>, in which case your uris will look like <span class="const">/my_app_uri/*</span>, etc.
+			</p>
+			
+<p>
+<span class="subhead">B - Serving an entire uri space with modjy</span>
+</p>
+			
+<p>
+				If you want to configure modjy to serve requests for all URIs, i.e. <span class="const">/*</span> then you cannot do so in the modjy_servlet web.xml file. Instead you must move the servlet up the configuration hierarchy.
+			</p>
+			
+<p>Every servlet container has a container-wide configuration file where container-wide servlets are configured. Some, such as Tomcat, split this function across multiple configuration files. Under Tomcat 6, this file is located at <span class="const">$tomcat_home/conf/web.xml</span>. Other containers, e.g. <a href="http://www.caucho.com">Caucho Resin</a>, permit this kind of configuration directly in the main server configuration file, i.e. <span class="const">resin.conf</span>.
+			</p>
+			
+<p>
+				You will need to configure a declaration for the modjy servlet in this higher level configuration file. You can probably copy this definition directly from the web.xml file that comes with modjy. After that, you will need to make the container map all URIs to the modjy servlet. The servlet definition will look something like this
+			</p>
+			
+<pre class="fragment">
+&lt;servlet&gt;
+    &lt;servlet-name&gt;modjy&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;com.xhaus.modjy.ModjyJServlet&lt;/servlet-class&gt;
+    &lt;!-- Parameters omitted --&gt;
+    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+&lt;/servlet&gt;
+			</pre>
+			
+<p>
+<span class="subhead">C - Creating a mapping for the entire uri space</span>
+</p>
+			
+<p>Possibly your container will have a default servlet to which requests are sent when they are not mapped to any other servlet. Under Tomcat, this is called the <span class="const">default</span> servlet, and is implemented by the java class <span class="const">org.apache.catalina.servlets.DefaultServlet</span>. The <span class="const">servlet-mapping</span> for this servlet will contain a <span class="const">&lt;url-pattern&gt;/&lt;/url-pattern&gt;</span>. You could change this servlet-mapping to reference the modjy servlet definition you defined above, or create a new servlet mapping if one does not already exist. That mapping should look something like this.
+			</p>
+			
+<pre class="fragment">
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;modjy&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+			</pre>
+			
+<p>
+<span class="subhead">D - Placing modjy.jar</span>
+</p>
+			
+<p>However, you're not finished yet! Because you've moved the modjy servlet up the container hierarchy, you must also move the modjy.jar file up the classloader hierarchy. Such matters tend to be container specific, and so you may need to read on the classloader hierarchy of your container to know where to place the modjy.jar file. Under the <a href="http://tomcat.apache.org//tomcat-5.0-doc/class-loader-howto.html">Tomcat 6 classloader hierarchy</a>, the level that is appropriate for container-wide servlets is <span class="const">$tomcat_home/lib</span>.</p>
+			
+<p>
+<span class="subhead">E - Placing jython.jar</span>
+</p>
+			
+<p>Once you've found the right place for the modjy.jar file, that is probably also the most appropriate to place the <span class="const">jython.jar</span> file.</p>
+			
+<p>The only reason for doing differently is if there are objects even further up the container hierarchy that also rely on jython. And if that's the situation, well, you're probably an old hand at all this stuff, aren't you ;-) </p>
+			
+<p>
+<span class="subhead">F - Telling modjy where modjy.jar is</span>
+</p>
+			
+<p>
+<b>There's one more thing you <b>may</b> need to do</b>. Modjy consists of a combination of java and jython files. The J2EE container is responsible for loading the modjy java servlet class (which is the thinnest possible wrapper around the jython modjy classes). Once started, the modjy java servlet imports the jython files directly from the modjy.jar file, thus bootstrapping the real modjy servlet.</p>
+			
+<p>There are three different ways in which modjy locates the modjy.jar file. Each of these methods is attempted, in the order given.</p>
+			
+<ol>
+				
+<li>By looking for it inside the J2EE standard <b>WEB-INF/lib</b> directory.</li>
+				
+<li>By being configured with a location, using the <b>modjy_jar.location</b> configuration property, as described below.</li>
+				
+<li>By trying to find the location of the archive from which the java class ModjyJServlet.class was loaded.</li>
+			
+</ol>
+			
+<p>
+				You will probably not need to explicitly specify the location of the modjy.jar file. But if you do, the configuration would look something like this.
+			</p>
+			
+<pre class="fragment">
+&lt;servlet&gt;
+    &lt;servlet-name&gt;modjy&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;com.xhaus.modjy.ModjyJServlet&lt;/servlet-class&gt;
+    &lt;init-param&gt;
+        &lt;param-name&gt;modjy_jar.location&lt;/param-name&gt;
+        &lt;param-value&gt;lib/modjy.jar&lt;/param-value&gt;
+    &lt;/init-param&gt;
+&lt;/servlet&gt;
+			</pre>
+			
+<p>So hopefully now you've got modjy/WSGI taking care of your entire URI space, i.e. <span class="const">SCRIPT_NAME=""</span>. Cool!</p>
+		
+</div>
+<p align="center" class="footer">original url: <a href="http://modjy.xhaus.com/install.html">http://modjy.xhaus.com/install.html</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				Copyright &copy; <a href="http://www.xhaus.com/contact/modjy">Alan Kennedy</a> 2004-2008.
+			</p>
+</body>
+</html>

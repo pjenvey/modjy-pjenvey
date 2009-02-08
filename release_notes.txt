@@ -1,0 +1,59 @@
+2008-02-03: version 0.25.2
+
+ - Fixed a bug with environ variables; they were unicode (due to the change
+   in jython string handling) and should be iso-8859-1 (or RFC 2047) encoded, 
+   according to WSGI.
+ - Added more explanatory material to the example web application.
+
+2008-12-24: version 0.25.1
+
+ - Fixed a small bug in the setting of log levels. Thanks to David Handy for
+   reporting it.
+
+2008-12-14: version 0.25.0
+
+ - Change of minor version to indicate that modjy is now fully compatible with 
+   the latest jython 2.5.
+ - 2.5b0 was the build when treatment of strings changed in relation to unicode.
+   modjy was broken in this regard; now fixed.
+ - The "importable" application loading mechanism in modjy was also broken, in that it 
+   relied on incorrect behaviour from jython 2.2. Now fixed.
+ - 2.5b0 was the build when the org.python.core.PyFile(java.io.InputSream) constructor 
+   was intentionally removed, and replaced with a utility function, 
+   org.python.core.util.FileUtil.wrap(). Modjy now uses the utility function.
+
+2008-10-30: version 0.22.3
+
+ - Changed behaviour where HTTP header names were being tranformed to lower case,
+   which was unnecessary; thanks to Ethan over at 10gen.com for reporting it.
+ - Changed documentation links to reflect new home page: http://modjy.xhaus.com
+
+2008-08-23: version 0.22.2
+
+ - Fixed a bug in the handling of the content-length header; thanks to Mike over 
+   at 10gen.com for reporting it.
+ - Added missing documentation for the initial_env parameter
+ - Added some more unit tests for return iterables and 
+   content-length headers
+
+2008-08-18: version 0.22.1
+
+ - Added the python specific WEB-INF/lib-python directory
+   Thanks to Leo Soto for this improvement, which came out of the 
+   Django On Jython GSOC project
+ - Added the "app_import_name" parameter, for importing framework handlers, etc.
+ - Added the "initial_env" parameter
+ - Added support for context relative paths
+ - Fixed a bug with the setting of the SCRIPT_NAME variable. Previous versions
+   had wrongly omitted the request.getContextPath() component.
+ - Added a number of unit tests.
+
+2007-09-05: version 0.22.0
+
+ - Mostly a naming change to reflect the fact that modjy works properly
+   on the newly released jython 2.2.
+ - Fixed an internal bug in the naming of the write callable.
+
+2004-10-04: version 0.21.0
+
+ - Initial release for jython 2.1.

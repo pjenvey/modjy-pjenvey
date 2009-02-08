@@ -1,0 +1,198 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Writing applications with modjy.</title>
+<link href="modjy.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<a name="top"></a>
+<table width="100%" border="0">
+<tr>
+<td width="210"><img align="left" src="logo_sm.gif"></td><td>
+<table width="100%" align="center">
+<tr>
+<td class="nb"><a href="index.html" class="nav">index</a></td><td class="nb"><a href="download.html" class="nav">download</a></td><td class="nb"><a href="install.html" class="nav">install</a></td><td class="nb"><a href="params.html" class="nav">config</a></td><td class="nb"><a href="locating.html" class="nav">apps</a></td><td class="nb"><a href="wsgi.html" class="nav">compliance</a></td><td class="nb"><a href="related.html" class="nav">related</a></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<h3 class="pagetitle">
+<b>Writing applications with modjy.</b>
+</h3>
+<ol>
+<li>
+<a href="#locating_callables">How modjy locates application callable objects.</a>
+</li>
+<li>
+<a href="#import_mechanism">The importable name mechanism.</a>
+</li>
+<li>
+<a href="#dir_file_call_mechanism">The directory/filename/callable callable mechanism</a>
+</li>
+</ol>
+<a name="locating_callables"></a>
+<h4 class="secthead">1: How modjy locates application callable objects.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>According to the <a href="http://www.python.org/dev/peps/pep-0333/">WSGI specification</a>, all WSGI applications must be python callable objects, taking a defined parameter list. Application callables can be python <a href="http://docs.python.org/ref/function.html">functions</a>, class instances with a <a href="http://docs.python.org/ref/callable-types.html">__call__()</a> method, or indeed <a href="http://docs.python.org/ref/calls.html">any callable object</a>.</p>
+			
+<p>There are two different mechanisms by which you can specify application callable objects to modjy. They are</p>
+			
+<ol>
+				
+<li>By specifying a single importable name. This requires specifying the name fully-package-qualified name of an importable WSGI handler, e.g. <b>some_framework.web.handlers.WSGIHandler</b>. This is the preferred mechanism, and takes precedence over the other mechanism, if configuration values are provided for both import mechanisms.</li>
+				
+<li>By specifying a combination of three names, a <b>directory name</b>, a <b>file name</b>, and a <b>callable name</b>.</li>
+			
+</ol>
+			
+<p>Each of these mechanisms is described below</p>
+		
+</div>
+<a name="import_mechanism"></a>
+<h4 class="secthead">2: The importable name mechanism.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>This mechanism uses a single string which specifies an importable name, which when imported should deliver a python callable object. As described above, this can be <a href="http://docs.python.org/ref/calls.html">any python callable</a>. The importable name is specified as a single string. However, there are some small variations on how that string is specified, depending on the nature of the callable.</p>
+			
+<ol>
+				
+<li>
+<b>Simple callable</b>: if the target application is directly callable, e.g. a simple function, then you need only specify the name of the callable/function, and it will be called directly by modjy. Example: <b>some_framework.web.handlers.WSGIHandlerFunction</b>
+</li>
+				
+<li>
+<b>Instance</b>: if the target application is an instantiable object, e.g. a class, then it will need to be <a href="http://www.faqs.org/docs/diveintopython/fileinfo_instantiation.html">instantiated</a> before it can be called. To do this, supply parentheses/brackets after the name. Example: <b>some_framework.web.handlers.WSGIHandlerClass()</b>. In this case, modjy will locate the definition of the <b>WSGIHandlerClass</b> in <b>some_framework.web.handlers</b>, create an instance of that class, and use that as the application. Note that when the application instance is called to service a WSGI request, the method that will be invoked is the <b>__call__</b> method. </li>
+				
+<li>
+<b>Instance method</b>: if you want to use a class instance to service WSGI requests, but need to specify a specific method, then add the handler method name onto the end of the importable name. Example: <b>some_framework.web.handlers.WSGIHandlerClass().handler</b>. With this example, modjy will locate the WSGIHandlerClass, as described above, create an instance of it, and then use the <b>handler</b> method of that instance as that application callable.</li>
+			
+</ol>
+			
+<p>
+<span class="subhead">A - The importable name mechanism and reloading</span>
+</p>
+			
+<p>
+<b>Reloading is not supported with the importable name mechanism</b>. When the importable name mechanism is used, the value of the <b>reload_on_mod</b> parameter is <b>ignored</b>.</p>
+			
+<p>
+<span class="subhead">B - The importable name mechanism and caching</span>
+</p>
+			
+<p>
+			Caching means that the same application callable object will be re-used repeatedly, to save object creation overhead. You have the choice of whether or not to enable caching using the <b>cache_callables</b> parameter, described in the <a href="params.html">modjy configuration reference</a>.
+			</p>
+			
+<p>If caching is <b>disabled</b> when using the importable name mechanism, this means that a new application object will be created for every new request, when appropriate. When the application is a simple callable, as described above, then caching has no meaning, since there is no instance to be re-used. When the application is an <b>instantiable</b>, as described above, then new instances will be created for every request.</p>
+			
+<p>If caching is <b>enabled</b> and the application callable is a class instance, then the same instance will be reused for every single request.</p>
+		
+</div>
+<a name="dir_file_call_mechanism"></a>
+<h4 class="secthead">3: The directory/filename/callable callable mechanism</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>An alternative mechanism for locating an application callable is to specify the full path to an application file, and the name of an application callable within that file. The full path is specified using a combination of a directory name and a filename. In order to locate WSGI application callables with this mechanism, modjy needs three pieces of information.</p>
+			
+<ol>
+				
+<li>The directory in which to look for the application's python source file.</li>
+				
+<li>The name of the application source file in that directory.</li>
+				
+<li>The name of the callable application object in that source file.</li>
+			
+</ol>
+			
+<p>
+<span class="subhead">A - The application directory</span>
+</p>
+			
+<p>Firstly, you need to specify the name of a directory containing the python file containing the source code for the application. Notes for this parameter include</p>
+			
+<ol>
+				
+<li>If do not supply a value for this parameter, the default value parameter is the <a href="install.html#context_root">servlet context root directory</a>
+</li>
+				
+<li>You can specify a directory relative to the <a href="install.html#context_root">servlet context root directory</a> by using a <b>$</b> at the beginning of path. For example, if your application resides in a directory named <b>my_apps_dir</b>, at the same level as the <b>WEB-INF</b> directory, then specify <b>$/my_apps_dir</b> as the directory name. If the <b>my_apps_dir</b> directory lives inside the <b>WEB-INF</b> directory, then specify <b>$/WEB-INF/my_apps_dir</b> as the directory name.</li>
+			
+</ol>
+			
+<p>
+<span class="subhead">B - The application filename</span>
+</p>
+			
+<p>
+				Once it has located the application directory, modjy then looks for an application source file. Modjy uses the same filename for all application source files. The default value for this filename is <span class="const">application.py</span>. You can change this value by setting the modjy configuration variable <span class="const">app_filename</span>.
+			</p>
+			
+<p>
+<span class="subhead">C - The callable object name</span>
+</p>
+			
+<p>
+				Lastly, having loaded and executed the application source file in response to a request, modjy needs to find a python callable object within the resulting python namespace. There are two different ways to set the name of the callable used for a request. They are
+			</p>
+			
+<ol>
+				
+<li>
+<span class="const">By configuration</span>. The configuration parameter <span class="const">app_callable_name</span> can be used to set the name of the callable in the python namespace. By default, modjy always uses the value of this parameter, whose default value is <span class="const">handler</span>. So if you don't change callable name configuration, all WSGI application objects should called "handler". </li>
+				
+<li>
+<b>From the request query string</b>. Modjy can be configured to extract the callable name from the query string of each request. This is done by specifying the name of the query field to be used in the configuration variable <span class="const">callable_query_name</span>. If a value is given for this parameter, it will be used to search the query string of every request for a query parameter of that name. If the named query parameter is present, its value will be used as the name of the callable object. If the named query parameter is not found, the value configured for the <span class="const">app_callable_name</span> configuration parameter (described above) will be used instead. Searching for callable names in query parameters <b>is disabled by default</b>. Security conscious deployers will probably wish to leave it disabled, since it provides a mechanism for the client to obtain access to the application's python objects.</li>
+			
+</ol>
+			
+<p>
+				Now modjy knows the pathname and callable name for the application. It now needs to decide whether it needs to load and compile the application source code, to find a definition of the application object, or whether it already has a usable instance of the application object in its <b>cache</b>.
+			</p>
+			
+<p>
+<span class="subhead">D - The application object cache</span>
+</p>
+			
+<p>
+				With the directory/file/callable mechanism, you can configure modjy to cache application objects for reuse for multiple requests. Application objects are stored in a cache, keyed under (pathname, callablename). If a request arrives which maps to an application object that is in the cache, then the cached object will be reused. Thus (unless the source file has been modified and <span class="const">reload_on_mod</span> is true) the application source file will <b>not</b> be reloaded and recompiled.
+			</p>
+			
+<p>
+				Conversely, if caching is disabled, this means that a fresh application object will be created for every new request. This will have the effect of causing the reloading and recompilation of the application source file for every request, which may be less efficient than you would like. So use this option carefully.
+			</p>
+			
+<p>
+				Lastly, note that the <span class="const">cache_callables</span> parameter has implications for the <span class="const">wsgi.run_once</span> environment variable. Therefore, when caching is disabled, modjy sets the value of <span class="const">wsgi.run_once</span> to <span class="const">true</span> (thus essentially making cache disablement almost equivalent to running as a CGI script).
+			</p>
+			
+<p>
+<span class="subhead">E - Reloading source on modification</span>
+</p>
+			
+<p>
+				With the directory/file/callable mechanism, you can configure modjy to reload application objects when their containing source file has been modified. See under <span class="const">reload_on_mod</span> in the <a href="params.html">Configuration reference</a> for more information.
+			</p>
+			
+<p>
+				Obviously, this parameter <b>only</b> takes effect when caching is enabled. Disabled caching means that the application source code is reloaded and recompiled for every request. If reload_on_mod is enabled, then cached objects will only be discarded when their containing source file has been modified. This is obviously a useful facility during a testing/debugging cycle. Also obviously, checking the access time on application source files comes at a small but finite resource cost for every single request, so you may want to disable it in production scenarios.
+			</p>
+			
+<p>
+<span class="subhead">F - Multi-threading</span>
+</p>
+			
+<p>
+				You can configure modjy to run your application objects in either multi-threaded or single-threaded mode. See under <span class="const">multithread</span> in the <a href="params.html">Configuration reference</a> for more information.
+			</p>
+		
+</div>
+<p align="center" class="footer">original url: <a href="http://modjy.xhaus.com/locating.html">http://modjy.xhaus.com/locating.html</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				Copyright &copy; <a href="http://www.xhaus.com/contact/modjy">Alan Kennedy</a> 2004-2008.
+			</p>
+</body>
+</html>

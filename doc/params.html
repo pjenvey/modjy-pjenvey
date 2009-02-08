@@ -1,0 +1,311 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Configuration reference</title>
+<link href="modjy.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<a name="top"></a>
+<table width="100%" border="0">
+<tr>
+<td width="210"><img align="left" src="logo_sm.gif"></td><td>
+<table width="100%" align="center">
+<tr>
+<td class="nb"><a href="index.html" class="nav">index</a></td><td class="nb"><a href="download.html" class="nav">download</a></td><td class="nb"><a href="install.html" class="nav">install</a></td><td class="nb"><a href="params.html" class="nav">config</a></td><td class="nb"><a href="locating.html" class="nav">apps</a></td><td class="nb"><a href="wsgi.html" class="nav">compliance</a></td><td class="nb"><a href="related.html" class="nav">related</a></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<h3 class="pagetitle">
+<b>Configuration reference</b>
+</h3>
+<ol>
+<li>
+<a href="#configuring">Configuring Modjy with context and servlet parameters.</a>
+</li>
+<li>
+<a href="#relative_paths">Configuring Modjy with relative pathnames</a>
+</li>
+<li>
+<a href="#modjy_parameters">Modjy parameters and their meanings.</a>
+</li>
+<li>
+<a href="#add_package">Using external java packages</a>
+</li>
+</ol>
+<a name="configuring"></a>
+<h4 class="secthead">1: Configuring Modjy with context and servlet parameters.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>Under J2EE, there are two main mechanisms that can be used to specify configuration values for a servlet or group of servlets.</p>
+			
+<ol>
+				
+<li>
+<b>Context Parameters</b>, which are defined at the top level scope of the <b>web.xml</b>, and are shared between all servlets configured in that servlet context.</li>
+				
+<li>
+<b>Servlet Parameters</b>, which are defined at servlet level scope, and are specific to a given servlet.</li>
+			
+</ol>
+			
+<p>Modjy can be configured with both context and servlet parameters. At runtime, modjy starts with an empty parameter set. It then reads the values of all context parameters, and adds them to the set of configured values. It then reads all of the servlet parameters, and adds them to the set. This means that <b>servlet-scope parameters take precedence over context-scope parameters</b>. Consider the following configuration:</p>
+			
+<pre class="fragment">
+&lt;web-app&gt;
+
+  &lt;context-param&gt;
+    &lt;param-name&gt;log_level&lt;/param-name&gt;
+    &lt;param-value&gt;info&lt;/param-value&gt;
+  &lt;/context-param&gt;
+
+  &lt;servlet&gt;
+    &lt;servlet-name&gt;modjy&lt;/servlet-name&gt;
+      &lt;servlet-class&gt;com.xhaus.modjy.ModjyJServlet&lt;/servlet-class&gt;
+      &lt;init-param&gt;
+        &lt;param-name&gt;log_level&lt;/param-name&gt;
+        &lt;param-value&gt;debug&lt;/param-value&gt;
+      &lt;/init-param&gt;
+  &lt;/servlet&gt;
+
+&lt;/web-app&gt;
+			</pre>
+			
+<p>
+				In the above example, the value <b>log_level=info</b> is configured as a context parameter, which means that all servlets in that context (i.e. defined in that <b>web.xml</b> file) will inherit that value for <b>log_level</b>, if it is not specifically opverwritten. In the &lt;servlet&gt; definition, the value <b>log_level=debug</b> is specified, meaning that this specific servlet (which may be one of many in the servlet context) will be configured with a value of <b>debug</b>, over-riding the context-level value <b>info</b>.
+			</p>
+		
+</div>
+<a name="relative_paths"></a>
+<h4 class="secthead">2: Configuring Modjy with relative pathnames</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>When configuring modjy with file and directory names, you will sometimes need to configure paths that are <b>relative</b> to the <a href="install.html#context_root">servlet context root</a>. The context root is a standard directory hierarchy for J2EE servlets, which is used to contain support resources for the servlet context.</p>
+			
+<p>If you wish to specify a relative path to modjy, then place a <b>$</b> symbol at the beginning of the path. For example, if you want to configure the <b>app_directory</b> parameter to be a directory <b>my_apps_dir</b>, contained within the context root (i.e. at the same level as WEB-INF), then configure the value as follows.</p>
+			
+<pre class="fragment">
+&lt;servlet&gt;
+  &lt;servlet-name&gt;modjy&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;com.xhaus.modjy.ModjyJServlet&lt;/servlet-class&gt;
+    &lt;init-param&gt;
+      &lt;param-name&gt;app_directory&lt;/param-name&gt;
+      &lt;param-value&gt;$/my_apps_dir&lt;/param-value&gt;
+    &lt;/init-param&gt;
+&lt;/servlet&gt;
+			</pre>
+		
+</div>
+<a name="modjy_parameters"></a>
+<h4 class="secthead">3: Modjy parameters and their meanings.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>Modjy servlet parameters are set as either <span class="const">&lt;context-param&gt;</span> or <span class="const">&lt;init-param&gt;</span> name-value pairs in the servlet configuration, e.g. in <span class="const">web.xml</span>. The following is the list of parameters that modjy understands.</p>
+			
+<p>Note that the values of all modjy initialisation parameters are provided to the application in the WSGI environment, under keys named <span class="const">modjy.param.param-name</span>
+</p>
+			
+<table cellpadding="3" class="datatab">
+				
+<tr class="tabh">
+					
+<th class="tabhead">Param-name</th>
+					<th class="tabhead">Value</th>
+					<th class="tabhead">Description</th>
+					<th class="tabhead">Default</th>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="center">python.home</td>
+					<td>A string giving the pathname to the local jython installation.</td>
+					<td>This is used to indicate to the jython interpreter embedded in modjy where to find the jython installation on the local machine. For more detail on why this property should be set, and how the value is used, see <a href="http://www.jython.org/docs/registry.html">The Jython Registry</a>.</td>
+					<td>None</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="center">python.*</td>
+					<td>A string giving a value for the relevant jython property.</td>
+					<td>Any parameter whose name begins with "python." is set in the java.util.Properties used to initialize the jython interpreter inside modjy. For example, values can be set for the following jython parameters: <b>python.path</b>, <b>python.cachedir</b>, etc. For more detail on the jython properties that can be set and what they mean, see <a href="http://www.jython.org/docs/registry.html">The Jython Registry</a>.</td>
+					<td>None</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="center">app_import_name</td>
+					<td>A string giving a name which can be imported to give an application callable</td>
+					<td>This parameter specifies the python importable name of a WSGI application, including a fully qualified package name. This can be used, for example, to import WSGI handlers from web frameworks. If you specify a name such as <b>some_framework.web.handlers.WSHIHandler</b>, then <b>some_framework</b> will be imported, <b>web</b> will be imported from <b>some_framework</b>, <b>handlers</b> will be import from <b>web</b>, and finally <b>WSGIHandler</b> will be imported from <b>handlers</b>. Being last in the path <b>WSGIHandler</b> will then be treated as the WSGI <b>application callable</b>. If a value is specified for this parameter, it will used in preference to the app_directory/app_filename/app_callable_name triplet mechanism described below. See the documentation for <a href="locating.html#locating_callables">how modjy locates application callable objects</a> for further details.
+					</td>
+					<td>None</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="center">app_directory</td>
+					<td>A string giving a path to the directory where application source files are located.</td>
+					<td>You may wish to keep your application source files outside the modjy servlet/context directory. In that case, you should specify the name of the application directory with this parameter. If you do not specify a value for this parameter, it defaults to the <a href="install.html#context_root">servlet context root directory</a>. <b>If a value is provided for the <b>app_import_name</b>, described above, then this parameter will be ignored.</b>
+					</td>
+					<td>servlet context root</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="center">app_filename</td>
+					<td>A string giving the python filename which contains the callable.</td>
+					<td>This parameter can be used to change the filename which modjy uses to locate the file which contains the definition of the application callable. For example, this parameter could be set to '__wsgi_app__.py', in which case all application objects will need to be contained in files called '__wsgi_app__.py'. This process of locating callables is described under <a href="locating.html#locating_callables">Locating the application callable</a>. <b>If a value is provided for the <b>app_import_name</b>, described above, then this parameter will be ignored.</b>
+					</td>
+					<td>application.py</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="center">app_callable_name</td>
+					<td>A string giving the name of python callable which is the WSGI application object.</td>
+					<td>This parameter tells modjy the name of the application callable object inside the application source file. For more information, see <a href="locating.html#locating_callables">How modjy locates application callable objects</a>. <b>If a value is provided for the <b>app_import_name</b>, described above, then this parameter will be ignored.</b>
+					</td>
+					<td>handler</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="center">callable_query_name</td>
+					<td>A string giving the name of the query parameter from which the callable name for this request should be taken.</td>
+					<td>This parameter tells modjy to extract the name of the application callable object from a query parameter in the request URI. For more information, see <a href="locating.html#locating_callables">How modjy locates application callable objects</a>. If the value of this parameter is not changed from its default value of None, callable names will never be extracted from the request query string. Example: if the value of this parameter was set to <b>python_object</b>, then a request for a URI like this <span class="code">/index?python_object=my_callable</span> will tell modjy to look for a callable named <b>my_callable</b> as the application callable.</td>
+					<td>None</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="center">cache_callables</td>
+					<td>0 == no caching, 1 == cache callables</td>
+					<td>This parameter tells modjy whether or not it should cache any callables it creates. Caching of callable objects is described under <a href="locating.html#locating_callables">How modjy locates application callable objects</a>.</td>
+					<td>1</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="center">reload_on_mod</td>
+					<td>0 == do not reload source, 1 == reload when source has been modified</td>
+					<td>This parameter tells modjy whether or not it should check to see if the python source file containing the application callable has been modified since the last time it was loaded. This is a useful flag for interactive development purposes. However, enabling the flag comes at a cost, which is that modjy must check the modification time of the application source file on <b>every single request</b>. When your application has been fully debugged and running in production, you will probably want to disable this flag. This flag has no effect when the 'cache_callables' parameter is false, i.e. caching is disabled, since a disabled cache means that application source is reloaded for every single request.</td>
+					<td>0</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="center">multithread</td>
+					<td>0 == access to callables should be synchronized, 1 == application may be called more than once simultaneously from multiple threads.</td>
+					<td>This parameter has an identical meaning to the WSGI variable 'wsgi.multithread'. If your application object is not thread-safe, you should set this flag to zero, thus ensuring that the application will only ever be called from one thread at a time. This is achieved by exclusively locking and unlocking the application callable before and after each request, so that the application services only one request at a time. This could cause considerable slowdown in a situation where multiple simultaneous calls are received for the same application.</td>
+					<td>1</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="center">log_class</td>
+					<td>The name of the class which should be used for logging.</td>
+					<td>If you wish to write your own logger class, create a new class in modjy_log, and change the value of this configuration parameter to its name.</td>
+					<td>modjy_logger</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="center">initial_env</td>
+					<td>This parameter is used to set initial environment variables in the WSGI environment. </td>
+					<td>A single name value pair is set by separating the name and value with a colon i.e. <b>:</b>. Multiple name value pairs can be set by separating them with a semi-colon, i.e. <b>;</b>. For example, if you wish to set the variable <b>myAppString</b> to <b>STRING_VAL</b> and <b>myAppInteger</b> to <b>42</b>, then use the following value for this parameter: <b>myAppString: STRING_VAL ; myAppInteger: 42</b>. All names values are stored in the environment as <b>strings</b>.</td>
+					<td>info</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="center">log_level</td>
+					<td>debug, info, warn, error, fatal</td>
+					<td>The level of diagnostic output that should be logged. There is currently only one type of logger supported in modjy: the <span class="const">modjy_logger</span> class. This class provides very basic logging functionality, sending all messages to the J2EE ServletContext.log method.</td>
+					<td>info</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="center">exc_handler</td>
+					<td>standard, testing</td>
+					<td>The name of the class which be used to handle exceptions that occur while running applications. The <span class="const">standard</span> handler simply re-raises the exception to be caught by the servlet container. The <span class="const">testing</span> handler is there for two reasons: 1. To provide debugging information in development and testing phases, and 2. To illustrate how to create customised exception handlers.</td>
+					<td>standard</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="center">packages</td>
+					<td>semicolon-separated list of java package names to be added.</td>
+					<td>See below under <a href="#add_package">Using external java packages</a>.</td>
+					<td>None</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td align="center">classdirs</td>
+					<td>semicolon-separated list of directories containing java packages and classes.</td>
+					<td>Adds each of the named directories to the list of places checked by jython for java packages and classes.</td>
+					<td>None</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td align="center">extdirs</td>
+					<td>semicolon-separated list of directories containing java packages and classes.</td>
+					<td>Forces jython to scan all <span class="const">.jar</span> and <span class="const">.zip</span> files in each of the named directories for java packages and classes.</td>
+					<td>None</td>
+				
+</tr>
+			
+</table>
+		
+</div>
+<a name="add_package"></a>
+<h4 class="secthead">4: Using external java packages</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>When using an external java package, it is not sufficient to simply add the package jar to the classpath. The name of the package must also be declared to jython. This can be done in one of two ways</p>
+			
+<ol>
+				
+<li>By specifying the java package names in the <span class="const">packages</span> configuration parameter, e.g. <span class="const">org.apache.xerces ; org.apache.xalan</span>.</li>
+				
+<li>By explicitly adding the package name in your own code, using the <span class="const">sys</span> module, e.g.
+<pre class="fragment">
+import sys
+sys.add_package('org.apache.xerces')
+sys.add_package('org.apache.xalan')
+</pre>.
+				</li>
+			
+</ol>
+			
+<p>If you don't believe the above, based on your experiences with the <span class="const">org.python.util.PyServlet</span> class, take a look at the source for PyServlet.java: it explicitly adds the necessary <span class="const">javax.servlet</span> packages.</p>
+		
+</div>
+<p align="center" class="footer">original url: <a href="http://modjy.xhaus.com/params.html">http://modjy.xhaus.com/params.html</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				Copyright &copy; <a href="http://www.xhaus.com/contact/modjy">Alan Kennedy</a> 2004-2008.
+			</p>
+</body>
+</html>

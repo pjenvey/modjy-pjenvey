@@ -1,0 +1,505 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>WSGI standards compliance and portability</title>
+<link href="modjy.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<a name="top"></a>
+<table width="100%" border="0">
+<tr>
+<td width="210"><img align="left" src="logo_sm.gif"></td><td>
+<table width="100%" align="center">
+<tr>
+<td class="nb"><a href="index.html" class="nav">index</a></td><td class="nb"><a href="download.html" class="nav">download</a></td><td class="nb"><a href="install.html" class="nav">install</a></td><td class="nb"><a href="params.html" class="nav">config</a></td><td class="nb"><a href="locating.html" class="nav">apps</a></td><td class="nb"><a href="wsgi.html" class="nav">compliance</a></td><td class="nb"><a href="related.html" class="nav">related</a></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<h3 class="pagetitle">
+<b>WSGI standards compliance and portability</b>
+</h3>
+<ol>
+<li>
+<a href="#intro">Introduction</a>
+</li>
+<li>
+<a href="#wsgi_environ">The WSGI environment.</a>
+</li>
+<li>
+<a href="#container_vars">Container specific environment variables.</a>
+</li>
+<li>
+<a href="#j2ee_vars">J2EE specific environment variables.</a>
+</li>
+<li>
+<a href="#input_stream">The WSGI input stream.</a>
+</li>
+<li>
+<a href="#error_stream">Destination of output to wsgi.errors</a>
+</li>
+<li>
+<a href="#bulk_transfers">Bulk transfers of file contents.</a>
+</li>
+</ol>
+<a name="intro"></a>
+<h4 class="secthead">1: Introduction</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>Modjy is a WSGI server, so as such it must attempt to comply with the WSGI specification as much as possible. Ideally, this means that it should be possible to take any python WSGI middleware component and run it on modjy without modification. The purpose of this page is list the details of modjy's WSGI compliance, and any considerations which might affect application portability.
+			</p>
+		
+</div>
+<a name="wsgi_environ"></a>
+<h4 class="secthead">2: The WSGI environment.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+<span class="subhead">A - WSGI variables</span>
+</p>
+			
+<p>
+				Modjy's WSGI environment contains all of the required WSGI environment variables. They are listed here, along with modjy-specific notes where appropriate.
+			</p>
+			
+<table cellpadding="3" class="datatab">
+				
+<tr class="tabh">
+					
+<th class="tabhead">Variable</th>
+					<th class="tabhead">Description</th>
+					<th class="tabhead">Modjy Default</th>
+					<th class="tabhead">Modjy notes</th>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>wsgi.version</td>
+					<td>The version of the WSGI standard with which modjy complies.</td>
+					<td align="center">(1,0)</td>
+					<td>Modjy is designed against version 1.0 of the WSGI standard.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>wsgi.url_scheme</td>
+					<td>A string representing the <b>scheme</b> portion of the URL.</td>
+					<td align="center">e.g. <span class="const">http</span> or <span class="const">https</span> </td>
+					<td>&nbsp;</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>wsgi.input</td>
+					<td>The input stream for this request.</td>
+					<td>The supplied input stream is WSGI-compliant</td>
+					<td>See below for notes about the <a href="#input_stream">WSGI input stream.</a></td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>wsgi.errors</td>
+					<td>The error stream for this request.</td>
+					<td>An output stream to which applications can write diagnostic output.</td>
+					<td>See below for notes about the <a href="#error_stream">destination of diagnostic output</a>.</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>wsgi.multithread</td>
+					<td>A boolean value indicating whether or not an application object may be called simultaneously from multiple threads.</td>
+					<td align="center">1</td>
+					<td>The default behaviour of modjy is to call application objects from multiple threads. The <span class="const">multithread</span> configuration parameter can be used to force modjy to only call application objects from one thread at a time. Also, if caching of applications is disabled through use of the <span class="const">cache_callables</span> parameter, new application objects are created for each new HTTP request and called once only for that request. Therefore, <span class="const">wsgi.multithread</span> will also be <span class="const">false</span> when <span class="const">cache_callables</span> is <span class="const">false</span>.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>wsgi.multiprocess</td>
+					<td>A boolean value indicating whether or not similar application objects will be called from multiple operating system processes.</td>
+					<td align="center">0</td>
+					<td>This value will always be <span class="const">false</span> on modjy.</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>wsgi.run_once</td>
+					<td>A boolean value indicating if the server expects to call the application object only once. </td>
+					<td align="center">0</td>
+					<td>Under modjy, this value depends solely on the value of the <span class="const">cache_callables</span> parameter. If caching of application objects is disabled, <span class="const">wsgi.run_once</span> will be <span class="const">true</span>, otherwise it will be <span class="const">false</span>.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>wsgi.file_wrapper</td>
+					<td>TBD</td>
+					<td align="center">TBD</td>
+					<td>TBD</td>
+				
+</tr>
+			
+</table>
+			
+<p>
+<span class="subhead">B - Required CGI environment variables</span>
+</p>
+			
+<p>All of the following variables appear in the WSGI dictionary as <b>string</b> values.</p>
+			
+<table cellpadding="3" class="datatab">
+				
+<tr class="tabh">
+					
+<th class="tabhead">Variable</th>
+					<th class="tabhead">Description</th>
+					<th class="tabhead">Example values</th>
+					<th class="tabhead">Modjy notes</th>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>REQUEST_METHOD</td>
+					<td>The HTTP request method for this request.</td>
+					<td align="center"><span class="const">GET</span>, <span class="const">PUT</span>, <span class="const">POST</span>, etc.</td>
+					<td>&nbsp;</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>SCRIPT_NAME</td>
+					<td>The initial portion of the request URL's path that corresponds to the application object.</td>
+					<td align="center">&nbsp;</td>
+					<td>&nbsp;</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>PATH_INFO</td>
+					<td>The remainder of the request URL's path, after the <span class="const">SCRIPT_NAME</span> has been subtracted.</td>
+					<td align="center">&nbsp;</td>
+					<td>&nbsp;</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>QUERY_STRING</td>
+					<td>A string containing the query portion of the URL request.</td>
+					<td align="center">"name1=value&amp;name2=value2", etc.</td>
+					<td>&nbsp;</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>CONTENT_TYPE</td>
+					<td>The mime type of the body content being uploaded for this request.</td>
+					<td align="center">"application/octet-stream", etc.</td>
+					<td>May be the empty string, e.g. if there is no body being uploaded.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>CONTENT_LENGTH</td>
+					<td>The length of the body content being uploaded for this request.</td>
+					<td align="center">&nbsp;</td>
+					<td>May be the empty string, e.g. if there is no body being uploaded.</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>SERVER_NAME</td>
+					<td>The name of the network host on which this request was received.</td>
+					<td align="center">"www.myserver.com", etc.</td>
+					<td>This value is that returned by the HttpServletRequest method getLocalName(), which was introduced in the servlet 2.4 specification. For a discussion of the difference between the getLocalName() and getServerName() methods, see the Sun document <a href="http://docs.sun.com/source/819-0077/J2EE.html">J2EE 1.4 Compatibility Issues</a> and the <a href="http://www.ietf.org/rfc/rfc3875">CGI specification</a>, section 4.1.14.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>SERVER_PORT</td>
+					<td>The number of the network port on which this request was received.</td>
+					<td align="center">"8080", "80", etc.</td>
+					<td>This value is that returned by the HttpServletRequest method getLocalPort(). See the notes above under SERVER_NAME for a discussion.</td>
+				
+</tr>
+			
+</table>
+			
+<p>
+<span class="subhead">C - Optional CGI environment variables.</span>
+</p>
+			
+<p>
+				In addition to the CGI variables required by WSGI, modjy also supplies values for the following CGI environment variables, both standard and non-standard.
+			</p>
+			
+<p>All of the following variables appear in the WSGI dictionary as <b>string</b> values.</p>
+			
+<table cellpadding="3" class="datatab">
+				
+<tr class="tabh">
+					
+<th class="tabhead">Variable</th>
+					<th class="tabhead">Description</th>
+					<th class="tabhead">Example values</th>
+					<th class="tabhead">Modjy notes</th>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>PATH_TRANSLATED</td>
+					<td>&nbsp;</td>
+					<td align="center">&nbsp;</td>
+					<td>&nbsp;</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>SERVER_PROTOCOL</td>
+					<td>The HTTP version in use for this request.</td>
+					<td align="center"><span class="const">HTTP/1.1</span>, <span class="const">HTTP/1.0</span>, etc.</td>
+					<td>&nbsp;</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>REMOTE_HOST</td>
+					<td>The host name for the remote machine making this request.</td>
+					<td align="center">machine.domain.com</td>
+					<td>This value will only be set to a dns name if your J2EE container is configured to do reverse-DNS lookups on request IP addresses. If your container is not so configured, then this will contain the numeric IP address of the remote machine, i.e. this variable will contain the same value as <span class="const">REMOTE_ADDR</span>, described below. With Tomcat 6, reverse-dns lookups are configured through the <span class="const">enableLookups</span> attribute of <span class="const">&lt;Connector&gt;</span> elements, e.g. <a href="http://tomcat.apache.org/tomcat-6.0-doc/config/http.html">HTTP Connectors</a> for standalone Tomcats or <a href="http://tomcat.apache.org/tomcat-6.0-doc/config/ajp.html">AJP Connectors</a> if you're hosting your Tomcat inside an Apache server.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>REMOTE_ADDR</td>
+					<td>The IP address of the remote machine making this request.</td>
+					<td align="center">"192.168.0.1", "127.0.0.1", etc.</td>
+					<td>This will contain a string representation of the numeric IP address of the remote machine.</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>REMOTE_PORT</td>
+					<td>The TCP port number through which this request was made from the client machine.</td>
+					<td align="center">"1234", "2345", etc.</td>
+					<td>This will contain a string representation of the port number of the socket from the remote machine which provided the request.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>HTTPS</td>
+					<td>A string indicating if the request was received through a secure HTTPS connection.</td>
+					<td align="center">either "on", "off", etc.</td>
+					<td>&nbsp;</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>AUTH_TYPE</td>
+					<td>A string indicating the type of authentication credentials included in this request.</td>
+					<td align="center">"BASIC", "DIGEST", etc.</td>
+					<td>If there was no authentication information supplied with this request, this variable will not appear in the WSGI environment.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>REMOTE_USER</td>
+					<td>A string indicating the login name of the user making this request.</td>
+					<td align="center">&nbsp;</td>
+					<td>If there was no authentication information supplied with this request, this variable will not appear in the WSGI environment.</td>
+				
+</tr>
+			
+</table>
+		
+</div>
+<a name="container_vars"></a>
+<h4 class="secthead">3: Container specific environment variables.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+				The following is a table of the modjy-specific environment variables that appear in the WSGI environment.
+			</p>
+			
+<table cellpadding="3" class="datatab">
+				
+<tr class="tabh">
+					
+<th class="tabhead">Variable</th>
+					<th class="tabhead">Description</th>
+					<th class="tabhead">Value</th>
+					<th class="tabhead">Notes</th>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>modjy.version</td>
+					<td>The version of modjy currently running.</td>
+					<td>(0,&nbsp;22,&nbsp;3)</td>
+					<td>The value will always be a 3-tuple, containing the (major, minor, micro) release numbers.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>modjy.params.*</td>
+					<td>The parameters with which this modjy servlet instance was configured. This allows the WSGI application to inspect the configuration of the container.</td>
+					<td></td>
+					<td>For example, the modjy configuration variable <span class="const">cache_callables</span> will appear in the WSGI namespace under the name <span class="const">modjy.params.cache_callables</span>. The values of each variable/parameter will be the original string from the servlet configuration file.</td>
+				
+</tr>
+			
+</table>
+		
+</div>
+<a name="j2ee_vars"></a>
+<h4 class="secthead">4: J2EE specific environment variables.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+				As well as setting WSGI environment variables for its own container specific things, modjy also creates environment variables to provide access to the original J2EE objects for a HTTP request and for the modjy servlet. Those variables are listed in the table below.
+			</p>
+			
+<p>
+				
+<b>NB:</b> The usage of these variables is a breach of the WSGI specification! Reliance on being able to bypass WSGI middleware and access the original request directly will make your application <b>non-portable</b>, <b>possibly broken</b> and may even cause <a href="http://mail.python.org/pipermail/web-sig/2004-October/000935.html">middleware meltdown</a>!
+			</p>
+			
+<p>
+				
+<b>NB:</b> These objects and their contents are only guaranteed to be valid for the duration of the current request/response cycle. Should it be desired to retain any information from any of these objects, a copy of the object or its values should be taken, or of corresponding values from the WSGI environment.
+			</p>
+			
+<table cellpadding="3" class="datatab">
+				
+<tr class="tabh">
+					
+<th class="tabhead">Variable</th>
+					<th class="tabhead">Value</th>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>j2ee.request</td>
+					<td>The <a href="http://java.sun.com/products/servlet/2.4/javadoc/javax/servlet/http/HttpServletRequest.html">javax.servlet.http.HttpRequest</a> object corresponding to this WSGI request.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>j2ee.response</td>
+					<td>The <a href="http://java.sun.com/products/servlet/2.4/javadoc/javax/servlet/http/HttpServletResponse.html">javax.servlet.http.HttpResponse</a> object corresponding to this WSGI request.</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>j2ee.servlet</td>
+					<td>The <a href="http://java.sun.com/products/servlet/2.4/javadoc/javax/servlet/http/HttpServlet.html">javax.servlet.http.HttpServlet</a> under which this WSGI request is running, i.e. the modjy servlet.</td>
+				
+</tr>
+				
+<tr class="tabeven">
+					
+<td>j2ee.servlet_context</td>
+					<td>The <a href="http://java.sun.com/products/servlet/2.4/javadoc/javax/servlet/ServletContext.html">javax.servlet.ServletContext</a> object for the j2ee.servlet defined above.</td>
+				
+</tr>
+				
+<tr class="tabodd">
+					
+<td>j2ee.servlet_config</td>
+					<td>The <a href="http://java.sun.com/products/servlet/2.4/javadoc/javax/servlet/ServletConfig.html">javax.servlet.ServletConfig</a> object for the j2ee.servlet defined above.</td>
+				
+</tr>
+			
+</table>
+		
+</div>
+<a name="input_stream"></a>
+<h4 class="secthead">5: The WSGI input stream.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+<span class="subhead">A - Reading beyond content-length on wsgi.input</span>
+</p>
+			
+<p>According to the WSGI 1.0 specification: <span class="quote">"The server is not required to read past the client's specified Content-Length, and is allowed to simulate an end-of-file condition if the application attempts to read past that point. The application should not attempt to read more data than is specified by the CONTENT_LENGTH variable"</span>.</p>
+			
+<p>Currently, modjy's behaviour in this situation is defined by the J2EE container. This is because the standard J2EE <a href="http://java.sun.com/products/servlet/2.3/javadoc/javax/servlet/ServletInputStream.html">javax.servlet.ServletInputStream</a> (on which the modjy wsgi.input is layered) is container-defined, and will thus have container-specific behaviour.</p>
+			
+<p>This means that applications can potentially expect any of the following behaviours, depending on the J2EE container</p>
+			
+<ol>
+				
+<li>That an exception be raised by the container when more bytes are read than should be.</li>
+				
+<li>That the container insert an EOF file marker when the input-stream reaches the content-length.</li>
+				
+<li>That the reads silently fail?</li>
+			
+</ol>
+			
+<p>In the future, I may implement a wrapper for wsgi.input that provides uniform, and perhaps configurable, behaviour across J2EE containers in this scenario.</p>
+			
+<p>
+<span class="subhead">B - 100 Continue</span>
+</p>
+			
+<p>
+				TBD.
+			</p>
+		
+</div>
+<a name="error_stream"></a>
+<h4 class="secthead">6: Destination of output to wsgi.errors</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>What happens to diagnostic output is dependent on the configuration of the J2EE servlet container in which modjy is running. Under Tomcat 6, for example, this is configured through the <span class="const">swallowOutput</span> attribute of <a href="http://tomcat.apache.org/tomcat-6.0-doc/config/context.html">org.apache.catalina.core.StandardContext</a> objects. A <span class="const">true</span> setting for this attribute will cause java <span class="const">System.err</span> and <span class="const">System.out</span> output, and thus wsgi.errors, to appear in the servlet context log.</p>
+		
+</div>
+<a name="bulk_transfers"></a>
+<h4 class="secthead">7: Bulk transfers of file contents.</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+				The WSGI spec describes optional support for bulk file transfers. Modjy currently does not support this feature, but may in the future.
+			</p>
+		
+</div>
+<p align="center" class="footer">original url: <a href="http://modjy.xhaus.com/wsgi.html">http://modjy.xhaus.com/wsgi.html</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				Copyright &copy; <a href="http://www.xhaus.com/contact/modjy">Alan Kennedy</a> 2004-2008.
+			</p>
+</body>
+</html>

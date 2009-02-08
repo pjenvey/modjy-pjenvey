@@ -1,0 +1,235 @@
+<!--
+###
+#
+# Copyright 2004-2008 Alan Kennedy. 
+# 
+# You may contact the copyright holder at this uri:
+# 
+# http://www.xhaus.com/contact/modjy
+# 
+# The licence under which this code is released is the Apache License v2.0.
+# 
+# The terms and conditions of this license are listed in a file contained
+# in the distribution that also contained this file, under the name
+# LICENSE.txt.
+# 
+# You may also read a copy of the license at the following web address.
+# 
+# http://www.xhaus.com/modjy/LICENSE.txt
+#
+###
+-->
+
+<project name="modjy" default="compile">
+
+	<description>
+		Modjy
+	</description>
+
+	<!-- Versioning constants -->
+
+	<property name="major"		value="0"/>
+	<property name="minor"		value="25"/>
+	<property name="micro"		value="2"/>
+
+	<!-- set global properties for this build -->
+
+	<property name="src"			location="src"/>
+	<property name="test"			location="test"/>
+	<property name="build"			location="build"/>
+	<property name="doc"			location="doc"/>
+	<property name="webapp"			location="modjy_webapp"/>
+	<property name="jarname"		value="modjy.jar"/>
+
+	<!-- Distribution properties	-->
+
+	<property name="dist_name"		value="modjy_${major}_${minor}_${micro}"/>
+	<property name="dist_dir"		location="${dist_name}"/>
+	<property name="dist_zip"		location="${dist_name}.zip"/>
+	<property name="dist_webapp"	location="${dist_dir}/modjy_webapp"/>
+	<property name="dist_webapplib" location="${dist_webapp}/WEB-INF/lib"/>
+	<property name="dist_doc"		location="${dist_dir}/doc"/>
+	<property name="dist_src"		location="${dist_dir}/src"/>
+	<property name="dist_test"		location="${dist_dir}/test"/>
+
+	<!-- Import the environment -->
+	<property environment="env"/>
+
+	<!-- You must set both the jython and tomcat properties in order to use the 'install' target -->
+
+	<!-- Jython properties	-->
+
+	<property name="jython_home"		location="${env.JYTHON_HOME}"/>
+	<property name="jython_jar"			value="jython-complete.jar"/>
+	<property name="jython_jar_path"	location="${jython_home}/${jython_jar}"/>
+	<property name="jython_cachedir"	location="${jython_home}/cachedir"/>
+
+	<!-- Tomcat properties	-->
+
+	<property name="tomcat_home"		location="${env.TOMCAT_HOME}"/>
+	<property name="tomcat_shared_lib"	location="${tomcat_home}/lib"/>
+	<property name="webapp_inst"		location="${tomcat_home}/webapps/modjy_webapp"/>
+
+	<target name="init">
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}"/>
+		<mkdir dir="${dist_dir}"/>
+		<mkdir dir="${dist_doc}"/>
+		<mkdir dir="${dist_src}"/>
+		<mkdir dir="${dist_src}"/>
+	</target>
+
+	<target name="compile" depends="init" description="Compile source and build the jar">
+		<javac srcdir="${src}" destdir="${build}" debug="on"/>
+	    <jar jarfile="${jarname}" basedir="${build}"/>
+	    <jar jarfile="${jarname}" basedir="src" includes="*.py" update="true"/>
+	</target>
+
+	<target name="dist" depends="compile, webapp, doc, source">
+		<copy file="${jarname}" todir="${dist_webapplib}"/>
+		<copy todir="${dist_dir}">
+			<fileset dir=".">
+				<include name="build.xml"/>
+				<include name="LICENSE.txt"/>
+				<include name="release_notes.txt"/>
+			</fileset>
+		</copy>
+		<zip
+			destfile="${dist_zip}"
+			basedir="."
+			includes="${dist_name}/**"
+		/>
+	</target>
+
+	<target name="install" depends="dist" description="Carry out installation of the finished jar file in the testapp dir">
+		<!-- First try to copy in the jython.jar file -->
+		<copy file="${jython_jar_path}" todir="${dist_webapplib}" failonerror="false"/>
+		<copy todir="${webapp_inst}">
+			<fileset dir="${dist_webapp}"/>
+		</copy>
+	</target>
+
+	<target name="source" depends="init">
+		<copy todir="${dist_src}">
+			<fileset dir="${src}">
+				<include name="**/*.java"/>
+				<include name="*.py"/>
+			</fileset>
+		</copy>
+		<copy todir="${dist_test}">
+			<fileset dir="${test}">
+				<include name="**/*.java"/>
+				<include name="**/*.py"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="doc" depends="init">
+		<copy todir="${dist_doc}">
+			<fileset dir="${doc}">
+				<include name="*.html"/>
+				<include name="*.css"/>
+				<include name="*.gif"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="webapp" depends="init">
+		<copy todir="${dist_webapp}">
+			<fileset dir="${webapp}"/>
+		</copy>
+	</target>
+
+	<target name="clean" description="clean up" >
+		<!-- Delete the ${build} and ${dist} directory trees -->
+		<delete dir="${build}"/>
+		<delete dir="${dist_dir}"/>
+		<delete file="${jarname}"/>
+		<delete file="${dist_zip}"/>
+	</target>
+
+	<!-- Now testing related targets -->
+
+    <target name="do_test" description="Run unit tests against a single jdk/servlet combo">
+		<echo message="Running tests against JDK ${jdk_version}, Servlet ${servlet_version}"/>
+		<echo message="Clearing jython package cache located at ${jython_home}/cachedir"/>
+		<delete quiet="true">
+			<fileset dir="${jython_cachedir}"/>
+		</delete>
+		<property name="mockrunner_home"	value="${env.MOCKRUNNER_HOME}"/>
+		<property name="mockrunner_jar"		location="${mockrunner_home}/jar"/>
+		<property name="mockrunner_lib"		location="${mockrunner_home}/lib/jdk${jdk_version}/${servlet_version}"/>
+		<javac srcdir="${test}" destdir="${build}" debug="on">
+			<classpath>
+				<pathelement path="${jarname}"/>
+				<pathelement path="${build}"/>
+				<pathelement path="${jython_jar_path}"/>
+				<fileset dir="${mockrunner_jar}" includes="**/*.jar"/>
+				<fileset dir="${mockrunner_lib}" includes="**/*.jar"/>
+			</classpath>
+		</javac>
+		<java 
+			classname="com.xhaus.modjy.ModjyTestBase"
+			dir="${test}"
+			fork="yes"
+		>
+			<classpath>
+				<pathelement path="${jarname}"/>
+				<pathelement path="${build}"/>
+				<pathelement path="${jython_jar_path}"/>
+				<fileset dir="${mockrunner_jar}" includes="**/*.jar"/>
+				<fileset dir="${mockrunner_lib}" includes="**/*.jar"/>
+			</classpath>
+		</java>
+	</target>
+
+	<target name="test" depends="compile">
+		<antcall target="do_test">
+			<param name="jdk_version"		value="1.5"/>
+			<param name="servlet_version"	value="j2ee1.3"/>
+		</antcall>
+	</target>
+
+	<target name="test_java_14" depends="clean, compile">
+		<antcall target="do_test">
+			<param name="jdk_version"		value="1.4"/>
+			<param name="servlet_version"	value="j2ee1.3"/>
+		</antcall>
+		<antcall target="do_test">
+			<param name="jdk_version"		value="1.4"/>
+			<param name="servlet_version"	value="j2ee1.4"/>
+		</antcall>
+	</target>
+
+	<target name="test_java_15" depends="clean, compile">
+		<antcall target="do_test">
+			<param name="jdk_version"		value="1.5"/>
+			<param name="servlet_version"	value="j2ee1.3"/>
+		</antcall>
+		<antcall target="do_test">
+			<param name="jdk_version"		value="1.5"/>
+			<param name="servlet_version"	value="j2ee1.4"/>
+		</antcall>
+		<antcall target="do_test">
+			<param name="jdk_version"		value="1.5"/>
+			<param name="servlet_version"	value="jee5"/>
+		</antcall>
+	</target>
+
+	<target name="test_java_16" depends="clean, compile">
+		<antcall target="do_test">
+			<param name="jdk_version"		value="1.6"/>
+			<param name="servlet_version"	value="j2ee1.3"/>
+		</antcall>
+		<antcall target="do_test">
+			<param name="jdk_version"		value="1.6"/>
+			<param name="servlet_version"	value="j2ee1.4"/>
+		</antcall>
+		<antcall target="do_test">
+			<param name="jdk_version"		value="1.6"/>
+			<param name="servlet_version"	value="jee5"/>
+		</antcall>
+	</target>
+
+</project>
+

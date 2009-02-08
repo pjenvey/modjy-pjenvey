@@ -1,0 +1,132 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>A WSGI server for jython</title>
+<link href="modjy.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<a name="top"></a>
+<table width="100%" border="0">
+<tr>
+<td width="210"><img align="left" src="logo_sm.gif"></td><td>
+<table width="100%" align="center">
+<tr>
+<td class="nb"><a href="index.html" class="nav">index</a></td><td class="nb"><a href="download.html" class="nav">download</a></td><td class="nb"><a href="install.html" class="nav">install</a></td><td class="nb"><a href="params.html" class="nav">config</a></td><td class="nb"><a href="locating.html" class="nav">apps</a></td><td class="nb"><a href="wsgi.html" class="nav">compliance</a></td><td class="nb"><a href="related.html" class="nav">related</a></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<h3 class="pagetitle">
+<b>A WSGI server for jython</b>
+</h3>
+<ol>
+<li>
+<a href="#intro">Introduction to modjy</a>
+</li>
+<li>
+<a href="#license">License: Apache License Version 2.0</a>
+</li>
+<li>
+<a href="#structural_overview">A structural overview of modjy</a>
+</li>
+</ol>
+<a name="intro"></a>
+<h4 class="secthead">1: Introduction to modjy</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>Python <span class="const">Web Server Gateway Interface</span>, as specified in <a href="http://www.python.org/dev/peps/pep-0333/">PEP-333</a>, is a <span class="quote">"simple and universal interface between web servers and [python] web applications or frameworks"</span>. </p>
+			
+<p>Modjy is an implementation of a WSGI compliant gateway/server for jython, built on <a href="http://java.sun.com/products/servlet/">Java/J2EE servlets</a>. Which means that</p>
+			
+<ol>
+				
+<li>Jython WSGI applications run inside a Java/J2EE servlet container, e.g. <a href="http://tomcat.apache.org/">Apache Tomcat</a>
+</li>
+				
+<li>Incoming requests are handled by the servlet container</li>
+				
+<li>The container is configured to route requests to the modjy servlet</li>
+				
+<li>The modjy servlet creates an embedded jython interpreter inside the servlet container, and loads a configured jython web application, e.g. <a href="http://www.djangoproject.com/">Django</a>, <span class="quote">"the web framework for perfectionists with deadlines"</span>.</li>
+				
+<li>The modjy servlet delegates the requests to the configured WSGI application or framework.</li>
+				
+<li>The WSGI response is routed back to the client through the servlet container.</li>
+			
+</ol>
+			
+<p>
+				For further information about WSGI, see <a href="http://wsgi.org">wsgi.org</a>. For a detailed specification of WSGI see <a href="http://www.python.org/dev/peps/pep-0333/">PEP-333: Python Web Server Gateway Interface, version 1.0</a>.
+			</p>
+			
+<p>
+<span class="subhead">A - What modjy is not</span>
+</p>
+			
+<p>Since modjy was developed at the same time as the WSGI specification, the text below was written when few people knew what WSGI was and what it wasn't. These days, WSGI is much better known, and most python web frameworks support it. But still, it's worth leaving in the following paragraph, for completeness.</p>
+			
+<p>
+				
+<i>Modjy is <b>not</b> another python web framework! There are already enough frameworks for python, as can be seen on the <a href="http://www.python.org/cgi-bin/moinmoin/WebProgramming">Python web programming wiki</a>. So much energy has gone into building those frameworks that there is little to be achieved by replicating that work. Instead, it is to be hoped that the authors of some of those frameworks will port their frameworks to WSGI, in which case they will be portable to every WSGI server, including modjy.</i>
+			
+</p>
+			
+<p>
+				
+<i>Which means that it is possible to run python web frameworks under jython and java.</i>
+			
+</p>
+		
+</div>
+<a name="license"></a>
+<h4 class="secthead">2: License: Apache License Version 2.0</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>Modjy is released under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License Version 2.0</a>
+</p>
+			
+<p>The full text of the licence, including all terms and conditions, is included in the <a href="download.html">Download</a>.</p>
+		
+</div>
+<a name="structural_overview"></a>
+<h4 class="secthead">3: A structural overview of modjy</h4>
+<a href="#top">[top]</a>
+<div class="section">
+			
+<p>
+<span class="subhead">A - Architecture</span>
+</p>
+			
+<p>
+				The architecture of modjy is very simple, from a J2EE point of view. It consists of a single java servlet class, which is a thin wrapper around the required jython functionality. Since the java servlet is multithreaded, only one instance of it will ever run in a given container (unless configured otherwise). This java servlet also initializes the jython runtime, setting some necessary parameters beforehand.
+			</p>
+			
+<p>
+				The java servlet then creates a single instance of the jython-implemented <span class="const">modjy_servlet</span> class, to which all incoming HTTP requests are delegated. Depending on configuration, modjy_servlet creates 1 or more instances of the jython WSGI application object,  as described in <a href="locating.html#locating_callables">How modjy locates application callable objects</a>. It then creates WSGI environment and start_response_callable objects, and invokes the application.
+			</p>
+			
+<p>
+				More details on how to configure modjy to use single vs. multi threading, etc, see the <a href="params.html">Configuration reference</a>.
+			</p>
+			
+<p>
+<span class="subhead">B - Code structure</span>
+</p>
+			
+<p>
+				The principal jython class for implementation of modjy is the <span class="const">modjy_servlet</span> class. This class uses <a href="http://en.wikipedia.org/wiki/Mixin">mixins</a> to <a href="http://www.linuxjournal.com/article/4540">factor out code by functionality</a>, so that the structure can be more easily evolved, components replaced, etc. 
+			</p>
+			
+<p>
+				Modjy has been updated to work on jython 2.2, and will no longer run on jython 2.1.
+			</p>
+		
+</div>
+<p align="center" class="footer">original url: <a href="http://modjy.xhaus.com/index.html">http://modjy.xhaus.com/index.html</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				Copyright &copy; <a href="http://www.xhaus.com/contact/modjy">Alan Kennedy</a> 2004-2008.
+			</p>
+</body>
+</html>

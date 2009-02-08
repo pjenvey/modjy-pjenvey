@@ -1,0 +1,30 @@
+body			{font-family:sans-serif;color:#111111;background-color:#ffffff;font-size:10pt;}
+li				{padding:1;}
+code			{font-family: arial;font-weight:600;font-size:11pt;}
+
+.pagetitle		{padding:0 15;}
+.chaphead		{padding:5;background-color:#944e88;color:#ffffff;}
+.subhead		{background-color:#fab248;font-weight:700;padding:2px;}
+.secthead		{padding:2px;background-color:#fab248;}
+.section		{padding:5px 15px;}
+.datatab		{background-color:#000000;}
+.tabhead		{background-color:#fab248;}
+.tabodd			{background-color:#e6fef9;vertical-align:top;border:black;}
+.tabeven		{background-color:#f8ffff;vertical-align:top;}
+.fragment		{background-color:#dddddd;color:#000000;font-family:arial;font-weight:800;padding:10;border:thin solid green;}
+.code			{background-color:#eeeeee;color:#000000;font-family:verdana;font-weight:600;}
+.footer			{padding:5;background-color:#fab248;}
+.quote			{font-weight:600;text-decoration:italic;}
+.const			{font-weight:600;background-color:#ffeebb;text-decoration:italic;}
+.nb				{background-color:#fab248;text-align:center;padding:0 5;}
+
+a:link.nav		{color:#000000;font-weight:800;text-decoration:none;}
+a:visited.nav	{color:#000000;font-weight:800;text-decoration:none;}
+a:active.nav	{color:#000000;font-weight:800;}
+a:hover.nav		{color:#288c2b;font-weight:800;text-decoration:underline;}
+
+a:link			{color:#288c2b;font-weight:800;text-decoration:underline;}
+a:visited		{color:#288c2b;font-weight:800;text-decoration:none;}
+a:active		{color:#000000;font-weight:800;}
+a:hover			{color:#288c2b;font-weight:800;text-decoration:underline;}
+
