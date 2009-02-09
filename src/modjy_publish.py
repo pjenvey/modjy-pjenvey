@@ -38,8 +38,6 @@ class modjy_publisher:
 			sys.path.append(self.app_directory)
 
 	def map_uri(self, req, environ):
-		script_name = "%s%s" % (req.getContextPath(), req.getServletPath())
-		path_info = req.getPathInfo() or ""
 		source_uri = '%s%s%s' % (self.app_directory, File.separator, self.params['app_filename'])
 		callable_name = self.params['app_callable_name']
 		if self.params['callable_query_name']:
@@ -49,12 +47,14 @@ class modjy_publisher:
 					name, value = name_val.split('=')
 					if name == self.params['callable_query_name']:
 						callable_name = value
-		environ["SCRIPT_NAME"] = script_name
-		environ["PATH_INFO"] = path_info
-		environ["PATH_TRANSLATED"] = File(self.app_directory, path_info).getPath()
 		return source_uri, callable_name
 
 	def get_app_object(self, req, environ):
+		environ["SCRIPT_NAME"] = "%s%s" % (req.getContextPath(), req.getServletPath())
+		path_info = req.getPathInfo() or ""
+		environ["PATH_INFO"] = path_info
+		environ["PATH_TRANSLATED"] = File(self.app_directory, path_info).getPath()
+
 		if self.params['app_import_name'] is not None:
 			return self.get_app_object_importable(self.params['app_import_name'])
 		else:
