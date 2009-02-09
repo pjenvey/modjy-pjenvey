@@ -88,4 +88,4 @@ class testing_handler(exception_handler):
 class standard_handler(exception_handler):
 
 	def handle(self, req, resp, environ, exc, exc_info):
-		raise exc
+		raise exc_info[0], exc_info[1], exc_info[2]
