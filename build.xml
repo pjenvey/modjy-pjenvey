@@ -60,7 +60,7 @@
 	<!-- Jython properties	-->
 
 	<property name="jython_home"		location="${env.JYTHON_HOME}"/>
-	<property name="jython_jar"			value="jython-complete.jar"/>
+	<property name="jython_jar"			value="jython.jar"/>
 	<property name="jython_jar_path"	location="${jython_home}/${jython_jar}"/>
 	<property name="jython_cachedir"	location="${jython_home}/cachedir"/>
 
