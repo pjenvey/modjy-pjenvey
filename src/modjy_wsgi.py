@@ -107,11 +107,11 @@ class modjy_wsgi:
 				if values is None:
 					values = next_value
 				else:
-					if isinstance(values, types.ListType):
+					if isinstance(values, list):
 						values.append(next_value)
 					else:
 						values = [values]
-			dict["HTTP_%s" % curr_header_name.replace('-', '_').upper()] = values
+			dict["HTTP_%s" % str(curr_header_name).replace('-', '_').upper()] = values
 
 	def set_required_wsgi_vars(self, req, resp, dict):
 		dict["wsgi.version"] = self.wsgi_version
