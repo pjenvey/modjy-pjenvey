@@ -1,6 +1,6 @@
 ###
 #
-# Copyright 2004-2008 Alan Kennedy. 
+# Copyright Alan Kennedy. 
 # 
 # You may contact the copyright holder at this uri:
 # 
@@ -48,7 +48,7 @@ class modjy_wsgi:
 	#	Container-specific constants
 	#
 
-	modjy_version = (0, 25, 2)
+	modjy_version = (0, 25, 3)
 
 	def set_string_envvar(self, dict, name, value):
 		if value is None:

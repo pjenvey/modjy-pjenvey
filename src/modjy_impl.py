@@ -1,6 +1,6 @@
 ###
 #
-# Copyright 2004-2008 Alan Kennedy. 
+# Copyright Alan Kennedy. 
 # 
 # You may contact the copyright holder at this uri:
 # 

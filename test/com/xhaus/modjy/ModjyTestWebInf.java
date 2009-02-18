@@ -49,4 +49,16 @@ public class ModjyTestWebInf extends ModjyTestBase
     	assertEquals("This is a library function", result);
 	}
 
+	public void testImportInPthFile ( )
+    	throws Exception
+	{
+		webInfTestSetUp();
+        setRealPath("/WEB-INF/lib-python/do_import.pth", "lib_python_folder/do_import.pth");
+		setAppName("test_execed_import_in_pth");
+		createServlet();
+    	doGet();
+    	String result = getOutput();
+    	assertEquals("pass", result);
+	}
+
 }

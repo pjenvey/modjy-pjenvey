@@ -81,11 +81,17 @@ public class ModjyTestEnviron extends ModjyTestBase
 	// which actually does computation on the incoming URI to work out the pathInfo.
 
 	public void doScriptNamePathInfoTest ( String contextPath, String servletPath, String URI, String pathInfo, 
-			String expectedScriptName, String expectedPathInfo )
+			String expectedScriptName, String expectedPathInfo, boolean appImportable )
     	throws Exception
 	{
 		environTestSetUp();
-		setAppName("test_env_script_name_path_info");
+		if (appImportable)
+		{
+			setRealPath("/WEB-INF/"+LIB_PYTHON_DIR, "");
+			setAppImportable("test_apps_dir.environ_tests.test_env_script_name_path_info");
+		}
+		else
+			setAppName("test_env_script_name_path_info");
 		createServlet();
 		setServletContextPath(contextPath);
 		setServletPath(servletPath);
@@ -94,13 +100,6 @@ public class ModjyTestEnviron extends ModjyTestBase
 		doGet();
     	String output = getOutput();
     	String[] results = output.split(":::");
-//    	System.out.println("ContextPath: " + contextPath);
-//    	System.out.println("ServletPath: " + servletPath);
-//    	System.out.println("URI: " + URI);
-//    	System.out.println("PathInfo: " + pathInfo);
-//    	System.out.println("ExpectedScriptName: " + expectedScriptName);
-//    	System.out.println("ExpectedPathInfo: " + expectedPathInfo);
-//    	System.out.println("Output: " + output);
     	assertEquals("ScriptName '"+results[0]+"' != '"+expectedScriptName+"'", results[0], expectedScriptName);
     	String actualPathInfo = "";
     	if (results.length > 1)
@@ -128,7 +127,8 @@ public class ModjyTestEnviron extends ModjyTestBase
 			String uri = contextPath+servletPath+pathInfo;
 			String expectedScriptName = contextPath+servletPath;
 			String expectedPathInfo = pathInfo;
-			doScriptNamePathInfoTest(contextPath, servletPath, uri, pathInfo, contextPath+servletPath, expectedPathInfo);
+			doScriptNamePathInfoTest(contextPath, servletPath, uri, pathInfo, contextPath+servletPath, expectedPathInfo, false);
+			doScriptNamePathInfoTest(contextPath, servletPath, uri, pathInfo, contextPath+servletPath, expectedPathInfo, true);
 		}
 	}
 
@@ -290,6 +290,19 @@ public class ModjyTestEnviron extends ModjyTestBase
 		environTestSetUp();
 		setAppName("test_cgi_vars_are_str");
 		createServlet();
+		doGet();
+    	String output = getOutput();
+		assertEquals("pass", output);
+	}
+
+	public void testMultipleHeaderValues ( )
+		throws Exception
+	{
+		environTestSetUp();
+		setAppName("test_multiple_header_values");
+		createServlet();
+		addHeader("MULTIPLE", "value 1");
+		addHeader("MULTIPLE", "value 2");
 		doGet();
     	String output = getOutput();
 		assertEquals("pass", output);

@@ -1,7 +1,7 @@
 <!--
 ###
 #
-# Copyright 2004-2008 Alan Kennedy. 
+# Copyright Alan Kennedy. 
 # 
 # You may contact the copyright holder at this uri:
 # 
@@ -15,7 +15,7 @@
 # 
 # You may also read a copy of the license at the following web address.
 # 
-# http://www.xhaus.com/modjy/LICENSE.txt
+# http://modjy.xhaus.com/LICENSE.txt
 #
 ###
 -->
@@ -30,7 +30,7 @@
 
 	<property name="major"		value="0"/>
 	<property name="minor"		value="25"/>
-	<property name="micro"		value="2"/>
+	<property name="micro"		value="3"/>
 
 	<!-- set global properties for this build -->
 

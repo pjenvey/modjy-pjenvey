@@ -1,4 +1,14 @@
-2008-02-03: version 0.25.2
+2009-02-15: version 0.25.3
+
+ - Applying some fixes kindly contributed by Philip Jenvey
+   from http://github.com/pjenvey/modjy-pjenvey
+   - Lines in .pth files starting with 'import' are now execed
+   - SCRIPT_NAME and PATH_INFO now correctly computed for all app mechanisms
+   - Fixed the standard exception handler
+ - Added a unit test to ensure that headers with multiple values are correctly handled
+ - Added a 'lib-python' sub-directory, containing a README file, to the demo web application.
+
+2009-02-03: version 0.25.2
 
  - Fixed a bug with environ variables; they were unicode (due to the change
    in jython string handling) and should be iso-8859-1 (or RFC 2047) encoded, 

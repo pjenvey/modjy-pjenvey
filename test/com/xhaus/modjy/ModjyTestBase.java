@@ -84,6 +84,13 @@ public class ModjyTestBase extends BasicServletTestCaseAdapter
 		getContext().setRealPath(source, target);
 	}
 
+	public void addHeader(String headerName, String headerValue)
+	{
+        MockHttpServletRequest request = (MockHttpServletRequest) getFactory().getWrappedRequest();
+        request.addHeader(headerName, headerValue);
+        getFactory().addRequestWrapper(request);
+	}
+
 	public void setBodyContent(String content)
 	{
         MockHttpServletRequest request = (MockHttpServletRequest) getFactory().getWrappedRequest();
@@ -177,6 +184,9 @@ public class ModjyTestBase extends BasicServletTestCaseAdapter
 
 	public void setAppImportable(String app_path)
 	{
+		setAppDir("");
+		setAppFile("");
+		setAppName("");
 		setInitParameter("app_import_name", app_path);
 	}
 
@@ -196,10 +206,11 @@ public class ModjyTestBase extends BasicServletTestCaseAdapter
     	throws Exception
 	{
 		super.setUp();
-		setRealPath("C:\\jython25b0", System.getenv("JYTHON_HOME"));
+		String jythonHome = System.getenv("JYTHON_HOME");
+		setRealPath(jythonHome, jythonHome);
 		setRealPath("/WEB-INF/"+LIB_PYTHON_DIR, LIB_PYTHON_TEST_PATH);
 		setRealPath("/WEB-INF/lib/modjy.jar", "../modjy.jar");
-		setPythonHome("C:\\jython25b0");
+		setPythonHome(jythonHome);
 		setAppDir(DEFAULT_APP_DIR);
 		setAppFile(DEFAULT_APP_FILE);
 		setAppName(DEFAULT_APP_NAME);

@@ -14,3 +14,10 @@ def test_import_from_zip_file(environ, start_response):
     writer = start_response("200 OK", [])
     return [lib_function()]
 
+def test_execed_import_in_pth(environ, start_response):
+    writer = start_response("200 OK", [])
+    import sys
+    if sys.modules.has_key('math'):
+        return ["pass"]
+    else:
+        return ["fail"]

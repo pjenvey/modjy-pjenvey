@@ -1,6 +1,6 @@
 /*###
 #
-# Copyright 2004-2008 Alan Kennedy. 
+# Copyright Alan Kennedy. 
 # 
 # You may contact the copyright holder at this uri:
 # 
@@ -14,7 +14,7 @@
 # 
 # You may also read a copy of the license at the following web address.
 # 
-# http://www.xhaus.com/modjy/LICENSE.txt
+# http://modjy.xhaus.com/LICENSE.txt
 #
 ###*/
 
@@ -82,8 +82,9 @@ public class ModjyJServlet extends HttpServlet
 	   	{
 	   		Properties props = readConfiguration();
 			PythonInterpreter.initialize(System.getProperties(), props, new String[0]);
-			interp = new PythonInterpreter(null, new PySystemState());
-			String modjyJarLocation = setupEnvironment(props, Py.getSystemState());
+			PySystemState systemState = new PySystemState();
+			interp = new PythonInterpreter(null, systemState);
+			String modjyJarLocation = setupEnvironment(interp, props, systemState);
 			try
 				{ interp.exec("from modjy import "+MODJY_PYTHON_CLASSNAME); }
 			catch (PyException ix)
@@ -121,16 +122,17 @@ public class ModjyJServlet extends HttpServlet
 	* 1. Find the location of the modjy.jar file and add it to sys.path
 	* 2. Process the WEB-INF/lib-python directory, if it exists
 	*
-	* @param props The properties from which config options are found
-	* @param systemState The PySystemState corresponding to the interpreter servicing requests
+	* @param interp - The PythinInterpreter used to service requests
+	* @param props  - The properties from which config options are found
+	* @param systemState  - The PySystemState corresponding to the interpreter servicing requests
 	* @returns A String giving the path to the modjy.jar file (which is used only for error reporting)
 	*/
 
-	protected String setupEnvironment(Properties props, PySystemState systemState)
+	protected String setupEnvironment(PythonInterpreter interp, Properties props, PySystemState systemState)
 	{
 		String modjyJarLocation = locateModjyJar(props);
 		systemState.path.append(new PyString(modjyJarLocation));
-		processPythonLib(systemState);
+		processPythonLib(interp, systemState);
 		return modjyJarLocation;
 	}
 
@@ -165,10 +167,11 @@ public class ModjyJServlet extends HttpServlet
 	/**
 	* Do all processing in relation to the lib-python subdirectory of WEB-INF
 	*
+	* @param interp - The PythinInterpreter used to service requests
 	* @param systemState - The PySystemState whose path should be updated
 	*/
 
-	protected void processPythonLib(PySystemState systemState)
+	protected void processPythonLib(PythonInterpreter interp, PySystemState systemState)
 	{
 		// Add the lib-python directory to sys.path
 		String pythonLibPath = getServletContext().getRealPath(LIB_PYTHON);
@@ -182,7 +185,7 @@ public class ModjyJServlet extends HttpServlet
 		String[] libPythonContents = pythonLib.list();
 		for (int ix = 0 ; ix < libPythonContents.length ; ix++)
 			if (libPythonContents[ix].endsWith(PTH_FILE_EXTENSION))
-				processPthFile(systemState, pythonLibPath, libPythonContents[ix]);
+				processPthFile(interp, systemState, pythonLibPath, libPythonContents[ix]);
 	}
 
 	/**
@@ -193,7 +196,7 @@ public class ModjyJServlet extends HttpServlet
 	* @param pthFilename - The PySystemState whose path should be updated
 	*/
 
-	protected void processPthFile(PySystemState systemState, String pythonLibPath, String pthFilename)
+	protected void processPthFile(PythonInterpreter interp, PySystemState systemState, String pythonLibPath, String pthFilename)
 	{
 		try
 		{
@@ -202,8 +205,12 @@ public class ModjyJServlet extends HttpServlet
 			while ((line = lineReader.readLine()) != null)
 			{
 				line = line.trim();
+				if (line.length() == 0)
+					continue;
 				if (line.startsWith("#"))
 					continue;
+				if (line.startsWith("import"))
+					interp.exec(line);
 				File archiveFile = new File(pythonLibPath, line);
 				String archiveRealpath = archiveFile.getAbsolutePath();
 				systemState.path.append(new PyString(archiveRealpath));

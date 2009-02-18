@@ -73,3 +73,14 @@ def test_cgi_vars_are_str(environ, start_response):
         if k.startswith('HTTP_') and not isinstance(environ[k], str):
             return ["fail: '%s(%s)' is not 'str'" % (k, str(type(environ[k])))]
     return ["pass"]
+
+def test_multiple_header_values(environ, start_response):
+    start_response("200 OK", [])
+    env_var_name = 'HTTP_MULTIPLE'
+    env_var = environ[env_var_name]
+    if not isinstance(env_var, list):
+        return ["fail: environment variable '%s' is not a list, but a '%s'" % (env_var_name, type(env_var))]
+    for ix, ev in enumerate(env_var):
+        if not isinstance(ev, str):
+            return ["fail: environment variable '%s'[%d] is not a str, but a '%s'" % (env_var_name, ix, type(ev))]
+    return ["pass"]
